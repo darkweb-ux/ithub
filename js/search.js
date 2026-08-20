@@ -8,13 +8,36 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (!overlay || !input || !resultsContainer) return;
 
+  // Add ARIA attributes
+  resultsContainer.setAttribute('role', 'listbox');
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-expanded', 'false');
+  input.setAttribute('aria-controls', 'palette-results');
+
   const { topics, categories, commands, glossary } = window.knowledgeData;
   let selectedIndex = 0;
   let currentResults = [];
 
+  function getBasePrefix() {
+    return window.location.pathname.includes('/pages/') ? '' : 'pages/';
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag] || tag)
+    );
+  }
+
   // Open Palette
   function openPalette() {
     overlay.classList.add('active');
+    input.setAttribute('aria-expanded', 'true');
     input.value = '';
     renderDefaultView();
     setTimeout(() => input.focus(), 50);
@@ -24,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close Palette
   function closePalette() {
     overlay.classList.remove('active');
+    input.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
   }
 
@@ -82,36 +106,29 @@ document.addEventListener('DOMContentLoaded', () => {
     items.forEach((item, idx) => {
       if (idx === selectedIndex) {
         item.classList.add('selected');
+        item.setAttribute('aria-selected', 'true');
         item.scrollIntoView({ block: 'nearest' });
       } else {
         item.classList.remove('selected');
+        item.setAttribute('aria-selected', 'false');
       }
     });
   }
 
   function renderDefaultView() {
     currentResults = [];
+    const prefix = getBasePrefix();
     resultsContainer.innerHTML = `
       <div class="palette-group-title">Suggestions</div>
-      <div class="palette-item" onclick="window.location.href='pages/topics.html'">
+      <div class="palette-item" role="option" aria-selected="false" onclick="window.location.href='${prefix}topics.html'">
         <div class="palette-item-title">Explore all topics</div>
         <div class="palette-item-desc">Browse the full knowledge base</div>
       </div>
-      <div class="palette-item" onclick="window.location.href='pages/commands.html'">
+      <div class="palette-item" role="option" aria-selected="false" onclick="window.location.href='${prefix}commands.html'">
         <div class="palette-item-title">Command Center</div>
         <div class="palette-item-desc">CLI reference</div>
       </div>
     `;
-    // Fix relative links if on subpage
-    const isRoot = window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html');
-    if (!isRoot) {
-      resultsContainer.querySelectorAll('.palette-item').forEach(el => {
-        const onclick = el.getAttribute('onclick');
-        if (onclick) {
-          el.setAttribute('onclick', onclick.replace("'pages/", "'"));
-        }
-      });
-    }
     selectedIndex = 0;
   }
 
@@ -130,9 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `<div class="palette-group-title">Topics</div>`;
       matchedTopics.slice(0, 4).forEach(t => {
         html += `
-          <div class="palette-item" data-type="topic" data-id="${t.id}">
-            <div class="palette-item-title">${t.icon} ${t.title}</div>
-            <div class="palette-item-desc">${t.category} • ${t.difficulty}</div>
+          <div class="palette-item" data-type="topic" data-id="${t.id}" role="option" aria-selected="false">
+            <div class="palette-item-title">${t.icon} ${escapeHTML(t.title)}</div>
+            <div class="palette-item-desc">${escapeHTML(t.category)} • ${escapeHTML(t.difficulty)}</div>
           </div>
         `;
         resultCount++;
@@ -149,9 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `<div class="palette-group-title">Commands</div>`;
       matchedCmds.slice(0, 3).forEach(c => {
         html += `
-          <div class="palette-item" data-type="command">
-            <div class="palette-item-title" style="font-family: var(--font-mono)">${c.cmd}</div>
-            <div class="palette-item-desc">${c.desc}</div>
+          <div class="palette-item" data-type="command" role="option" aria-selected="false">
+            <div class="palette-item-title" style="font-family: var(--font-mono)">${escapeHTML(c.cmd)}</div>
+            <div class="palette-item-desc">${escapeHTML(c.desc)}</div>
           </div>
         `;
         resultCount++;
@@ -167,9 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `<div class="palette-group-title">Glossary</div>`;
       matchedGlossary.slice(0, 3).forEach(g => {
         html += `
-          <div class="palette-item" data-type="glossary">
-            <div class="palette-item-title">${g.term}</div>
-            <div class="palette-item-desc">${g.definition}</div>
+          <div class="palette-item" data-type="glossary" role="option" aria-selected="false">
+            <div class="palette-item-title">${escapeHTML(g.term)}</div>
+            <div class="palette-item-desc">${escapeHTML(g.definition)}</div>
           </div>
         `;
         resultCount++;
@@ -178,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (resultCount === 0) {
       html = `
-        <div class="palette-item" style="cursor:default">
-          <div class="palette-item-title">No results found for "${query}"</div>
+        <div class="palette-item" style="cursor:default" role="option" aria-selected="false">
+          <div class="palette-item-title">No results found for "${escapeHTML(query)}"</div>
           <div class="palette-item-desc">Try a different search term</div>
         </div>
       `;
@@ -199,10 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       item.addEventListener('click', () => {
         const type = item.getAttribute('data-type');
+        if (!type) return; // Prevent clicking on "No results found"
         closePalette();
         
-        const isRoot = window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html');
-        const prefix = isRoot ? 'pages/' : '';
+        const prefix = getBasePrefix();
 
         if (type === 'topic') {
           const id = item.getAttribute('data-id');

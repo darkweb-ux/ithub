@@ -1,4 +1,4 @@
-# IT Knowledge Hub
+# MJ Solutions
 
 An Enterprise IT Knowledge Platform covering AI, LLMs, Networking, Firewalls, Servers, Cloud, Cybersecurity, IT Operations, and ITSM.
 

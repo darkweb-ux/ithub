@@ -43,6 +43,12 @@
   .sidebar.active {
     transform: translateX(0);
   }
+  
+  .mobile-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .top-header {
     padding: 0 1rem;

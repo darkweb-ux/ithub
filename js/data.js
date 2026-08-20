@@ -1,4 +1,4 @@
-// js/data.js - Centralized Data Store for IT Knowledge Hub
+// js/data.js - Centralized Data Store for MJ Solutions
 
 const categories = [
   { id: 'ai-llm', name: 'AI & LLM', desc: 'Learn modern AI and Large Language Models.', icon: '🧠', count: 20 },

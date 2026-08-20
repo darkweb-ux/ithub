@@ -1,4 +1,4 @@
-/* css/style.css - Base Styles & Variables for Enterprise IT Knowledge Hub */
+/* css/style.css - Base Styles & Variables for Enterprise MJ Solutions */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
 
@@ -318,6 +318,22 @@ ul, ol { list-style: none; }
 
 .icon-btn:hover {
   background-color: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.mobile-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+}
+
+.mobile-close-btn:hover {
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
